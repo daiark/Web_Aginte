@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Plataforma de Inteligencia Industrial</title>
+        <style>
+            /* --- THEME VARIABLES --- */
+            :root {
+                --bg-body: #080809; /* Deep slate black */
+                --bg-card: #0e0f11; /* Film grain base */
+                --border-subtle: #1e2024;
+                --border-highlight: #3a3e45;
+                --accent-green: #4ade80; /* Muted Emerald */
+                --accent-green-glow: rgba(74, 222, 128, 0.12);
+                --accent-orange: #f87171; /* Soft Terracotta/Coral */
+                --accent-purple: #818cf8; /* Dusty Periwinkle */
+                --text-primary: #e2e8f0; /* Off-white parchment */
+                --text-secondary: #94a3b8;
+                --font-main: "Inter", system-ui, -apple-system, sans-serif;
+                --font-mono: "JetBrains Mono", "Fira Code", monospace;
+                --max-width: 1400px;
+                --radius: 6px;
+            }
+
+            /* --- RESET & BASE --- */
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background-color: var(--bg-body);
+                color: var(--text-primary);
+                font-family: var(--font-main);
+                line-height: 1.6;
+                -webkit-font-smoothing: antialiased;
+            }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            text-wrap: balance; /* Distribución equilibrada de líneas */
+        }
+        h1 {
+            font-size: 4.5rem; /* Ligeramente más grande */
+            line-height: 1.05;
+        }
+        h2 {
+            font-size: 2.8rem;
+            line-height: 1.2;
+        }
+        h3 {
+            font-size: 1.6rem;
+        }
+        p {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            margin-bottom: 2rem;
+            max-width: 90%; /* Más flexible que 60ch */
+            text-wrap: pretty; /* Evita palabras sueltas al final */
+            line-height: 1.7;
+        }
+
+            /* --- UTILITIES --- */
+            .container {
+                max-width: var(--max-width);
+                margin: 0 auto;
+                padding: 0 2rem;
+            }
+            .mono-label {
+                font-family: var(--font-mono);
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--accent-green);
+                margin-bottom: 1rem;
+                display: inline-block;
+                border: 1px solid var(--border-subtle);
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--accent-green);
+                color: #000;
+                padding: 1rem 2.5rem;
+                font-weight: 700;
+                text-decoration: none;
+                border-radius: var(--radius);
+                transition: all 0.3s ease;
+                font-family: var(--font-mono);
+                text-transform: uppercase;
+                font-size: 0.85rem;
+                letter-spacing: 0.05em;
+            }
+            .btn:hover {
+                box-shadow: 0 0 20px var(--accent-green-glow);
+                background-color: #00ff80;
+            }
+
+            /* --- MEDIA CONTAINERS --- */
+            .tech-frame {
+                background-color: var(--bg-card);
+                border: 1px solid var(--border-subtle);
+                border-radius: var(--radius);
+                position: relative;
+                overflow: hidden;
+                transition: border-color 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .tech-frame:hover {
+                border-color: var(--border-highlight);
+            }
+
+            /* Video Styles */
+            video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover; /* Ensures dashboard fills the frame */
+                display: block;
+                cursor: pointer;
+            }
+
+            /* Play/Pause Button Overlay */
+            .video-control {
+                position: absolute;
+                bottom: 1.5rem;
+                right: 1.5rem;
+                z-index: 2;
+                background: rgba(0, 0, 0, 0.6);
+                border: 1px solid var(--border-highlight);
+                color: var(--text-primary);
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                font-family: var(--font-mono);
+                font-size: 0.7rem;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                backdrop-filter: blur(4px);
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .video-control:hover {
+                background: var(--accent-green);
+                color: #000;
+                border-color: var(--accent-green);
+            }
+            .video-control .icon {
+                font-size: 0.6rem;
+            }
+
+            /* Image Styles */
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            /* Placeholder Overlay (hidden when media loads) */
+            .media-placeholder {
+                display: none;
+            }
+
+            /* --- SECTIONS --- */
+            section,
+            header {
+                padding: 8rem 0;
+                border-bottom: 1px solid var(--border-subtle);
+            }
+            section:last-of-type {
+                border-bottom: none;
+            }
+
+            .arch-grid {
+                display: grid;
+                grid-template-columns: 1.5fr 1fr;
+                gap: 4rem;
+                margin-top: 4rem;
+            }
+            .diagram-box {
+                height: auto;
+                max-width: 100%; /* Aumentado de 90% a 100% */
+                margin: 0 auto;
+                background-image: radial-gradient(
+                    var(--border-subtle) 1px,
+                    transparent 1px
+                );
+                background-size: 30px 30px;
+            }
+
+            .diagram-box img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                display: block;
+                padding: 0.5rem; /* Reducido el padding para dar más espacio a la imagen */
+            }
+
+            .grid-2-col {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6rem;
+                align-items: center;
+            }
+            .video-box {
+                aspect-ratio: 16/9;
+                background: #000;
+            }
+
+            .gallery-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+                margin-top: 3rem;
+            }
+            .screenshot-card {
+                aspect-ratio: 16/10;
+                background: #000;
+            }
+
+            .wide-banner {
+                width: 100%;
+                padding: 6rem;
+                flex-direction: column;
+                background: radial-gradient(
+                    circle at center,
+                    #111 0%,
+                    #000 70%
+                );
+            }
+
+            @media (max-width: 900px) {
+                header {
+                    padding: 2.5rem 0 4rem 0; /* Más alto al inicio */
+                }
+                section {
+                    padding: 4rem 0;
+                }
+                .container {
+                    padding: 0 1rem; /* Aún más espacio horizontal (reducido de 1.25) */
+                }
+                h1 {
+                    font-size: 2.6rem; /* Más pequeño para móvil */
+                }
+                h2 {
+                    font-size: 1.8rem;
+                }
+                p {
+                    font-size: 1rem;
+                    max-width: 100%; /* Ocupa todo el ancho disponible */
+                    margin-bottom: 1.5rem; /* Menos espacio bajo el párrafo */
+                }
+                .arch-grid {
+                    margin-top: 1.5rem; /* Acercar la imagen al texto (reducido de 4rem) */
+                }
+                .arch-grid,
+                .grid-2-col,
+                .gallery-grid {
+                    grid-template-columns: 1fr;
+                    gap: 2.5rem; /* Gap más compacto */
+                }
+                .diagram-box {
+                    width: 100%;
+                    margin: 0;
+                }
+                .diagram-box img {
+                    padding: 0; /* Eliminar padding para maximizar imagen en móvil */
+                }
+                .wide-banner {
+                    padding: 4rem 1.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!--
+      PORTABLE MEDIA LOADER
+      This script handles the switching between local assets and R2 storage.
+    -->
+        <script>
+            const CONFIG = {
+                // Change to your R2 Public URL when deploying (e.g., "https://media.industrial.com/")
+                videoBase: "./videos/",
+                imageBase: "./assets/images/",
+            };
+
+            function initMedia() {
+                // Intersection Observer for Scroll-to-Play
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            const video = entry.target;
+                            if (entry.isIntersecting) {
+                                video.play().catch(() => {}); // Autoplay might be blocked if not muted
+                            } else {
+                                video.pause();
+                            }
+                        });
+                    },
+                    { threshold: 0.2 },
+                );
+
+                // Load Videos
+                document
+                    .querySelectorAll("video[data-src]")
+                    .forEach((video) => {
+                        const source = document.createElement("source");
+                        source.src =
+                            CONFIG.videoBase + video.getAttribute("data-src");
+
+                        // Set type based on extension
+                        const ext = video
+                            .getAttribute("data-src")
+                            .split(".")
+                            .pop();
+                        source.type = `video/${ext === "webm" ? "webm" : "mp4"}`;
+
+                        video.appendChild(source);
+
+                        // Add Play/Pause Control Button
+                        const control = document.createElement("div");
+                        control.className = "video-control";
+                        control.innerHTML =
+                            '<span class="icon">||</span> <span class="label">PAUSA</span>';
+                        video.parentElement.appendChild(control);
+
+                        // Toggle logic
+                        const togglePlay = () => {
+                            if (video.paused) {
+                                video.play();
+                                control.innerHTML =
+                                    '<span class="icon">||</span> <span class="label">PAUSA</span>';
+                            } else {
+                                video.pause();
+                                control.innerHTML =
+                                    '<span class="icon">▶</span> <span class="label">REPRODUCIR</span>';
+                            }
+                        };
+
+                        video.onclick = togglePlay;
+                        control.onclick = togglePlay;
+
+                        // Observer registration
+                        observer.observe(video);
+
+                        // Hide placeholder text when video starts playing
+                        video.onplay = () => {
+                            const placeholder =
+                                video.parentElement.querySelector(
+                                    ".media-placeholder",
+                                );
+                            if (placeholder) placeholder.style.display = "none";
+                            control.innerHTML =
+                                '<span class="icon">||</span> <span class="label">PAUSA</span>';
+                        };
+
+                        video.onpause = () => {
+                            control.innerHTML =
+                                '<span class="icon">▶</span> <span class="label">REPRODUCIR</span>';
+                        };
+                    });
+
+                // Load Images
+                document.querySelectorAll("img[data-src]").forEach((img) => {
+                    img.src = CONFIG.imageBase + img.getAttribute("data-src");
+                    img.onload = () => {
+                        const placeholder =
+                            img.parentElement.querySelector(
+                                ".media-placeholder",
+                            );
+                        if (placeholder) placeholder.style.display = "none";
+                    };
+                });
+            }
+
+            window.addEventListener("DOMContentLoaded", initMedia);
+        </script>
+
+        <header>
+            <div class="container">
+                <span class="mono-label">01 // Arquitectura de Planta</span>
+                <h1>Gestión Industrial Unificada.</h1>
+                <p>
+                    Procesamiento de datos a pie de máquina para mantenimiento
+                    preventivo, sincronización logística y arquitectura modular
+                    escalable para nuevas funciones.
+                </p>
+
+                <div class="arch-grid">
+                    <div class="tech-frame diagram-box">
+                        <img
+                            data-src="arch.webp"
+                            alt="Arquitectura del Sistema"
+                        />
+                    </div>
+
+                    <div class="arch-list">
+                        <h3>Infraestructura de Procesamiento Local</h3>
+                        <ul style="list-style: none; margin-bottom: 2rem">
+                            <li
+                                style="
+                                    margin-bottom: 1.5rem;
+                                    padding-left: 1rem;
+                                    border-left: 2px solid var(--accent-green);
+                                "
+                            >
+                                <strong>Nodo de Captura</strong>
+                                <span style="color: var(--text-secondary)"
+                                    >Análisis de señales en milisegundos sin
+                                    dependencia de red externa</span
+                                >
+                            </li>
+                            <li
+                                style="
+                                    margin-bottom: 1.5rem;
+                                    padding-left: 1rem;
+                                    border-left: 2px solid var(--border-subtle);
+                                "
+                            >
+                                <strong>Consolidación en la Nube</strong>
+                                <span style="color: var(--text-secondary)"
+                                    >Supervisión centralizada y control de flotas
+                                    globales</span
+                                >
+                            </li>
+                        </ul>
+                        <a href="#contact" class="btn"
+                            >Especificaciones Técnicas</a
+                        >
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="monitoring">
+                <div class="container">
+                    <div class="grid-2-col">
+                        <div class="tech-frame video-box">
+                            <video
+                                data-src="cast1.webm"
+                                autoplay
+                                loop
+                                muted
+                                playsinline
+                            ></video>
+                        </div>
+                        <div class="content">
+                            <span class="mono-label">02 // Supervisión</span>
+                            <h2>Supervisión de Planta.</h2>
+                            <p>
+                                Control de eficiencia operativa y estado de
+                                máquina en tiempo real. Seguimiento de ciclos,
+                                paradas e incidencias técnicas desde una interfaz
+                                centralizada.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="planning">
+                <div class="container">
+                    <div class="grid-2-col">
+                        <div class="content">
+                            <span class="mono-label">03 // Planificación</span>
+                            <h2>Planificación Automática.</h2>
+                            <p>
+                                Optimización de carga mediante IA para reducir
+                                tiempos muertos. Ajuste instantáneo de la
+                                producción ante imprevistos en línea y cambios
+                                de prioridad.
+                            </p>
+                            <ul style="list-style: none; margin-top: 1rem">
+                                <li
+                                    style="
+                                        margin-bottom: 1rem;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 1rem;
+                                    "
+                                >
+                                    <span style="color: var(--accent-orange)"
+                                        >●</span
+                                    >
+                                    <span
+                                        >Priorización Dinámica de Órdenes</span
+                                    >
+                                </li>
+                                <li
+                                    style="
+                                        margin-bottom: 1rem;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 1rem;
+                                    "
+                                >
+                                    <span style="color: var(--accent-purple)"
+                                        >●</span
+                                    >
+                                    <span
+                                        >Analítica de Ciclo de Vida</span
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tech-frame video-box">
+                            <video
+                                data-src="planning-demo.mp4"
+                                autoplay
+                                loop
+                                muted
+                                playsinline
+                            ></video>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="interface">
+                <div class="container">
+                    <div style="margin-bottom: 4rem">
+                        <span class="mono-label">04 // Interfaz</span>
+                        <h2>Ergonomía de Taller.</h2>
+                        <p>
+                            Diseño de alto contraste optimizado para uso táctil.
+                            Lectura clara a 3 metros en condiciones reales de
+                            fabricación y entornos industriales exigentes.
+                        </p>
+                    </div>
+
+                    <div class="gallery-grid">
+                        <div class="tech-frame screenshot-card">
+                            <img
+                                data-src="ui-dashboard.webp"
+                                alt="Panel de Control"
+                            />
+                        </div>
+                        <div class="tech-frame screenshot-card">
+                            <img
+                                data-src="ui-analytics.webp"
+                                alt="Módulo de Analítica"
+                            />
+                        </div>
+                        <div class="tech-frame screenshot-card">
+                            <img data-src="ui-mobile.webp" alt="Terminal Móvil" />
+                        </div>
+                        <div class="tech-frame screenshot-card">
+                            <img
+                                data-src="ui-alerts.webp"
+                                alt="Sistema de Notificaciones"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cta">
+                <div class="container">
+                    <div class="tech-frame wide-banner">
+                        <h2 style="margin-bottom: 2rem; text-align: center">
+                            ¿Desea modernizar su infraestructura de producción?
+                        </h2>
+                        <a href="mailto:sales@example.com" class="btn"
+                            >Contactar con Oficina Técnica</a
+                        >
+                    </div>
+                </div>
+            </section>
+        </main>
+    </body>
+</html>
