@@ -9,8 +9,8 @@
             :root {
                 --bg-body: #080809; /* Deep slate black */
                 --bg-card: #0e0f11; /* Film grain base */
-                --border-subtle: #1e2024;
-                --border-highlight: #3a3e45;
+                --border-subtle: rgba(30, 32, 36, 0.5);
+                --border-highlight: rgba(58, 62, 69, 0.6);
                 --accent-green: #4ade80; /* Muted Emerald */
                 --accent-green-glow: rgba(74, 222, 128, 0.12);
                 --accent-orange: #f87171; /* Soft Terracotta/Coral */
@@ -20,7 +20,7 @@
                 --font-main: "Inter", system-ui, -apple-system, sans-serif;
                 --font-mono: "JetBrains Mono", "Fira Code", monospace;
                 --max-width: 1400px;
-                --radius: 6px;
+                --radius: 12px;
             }
 
             /* --- RESET & BASE --- */
@@ -61,7 +61,8 @@
             color: var(--text-secondary);
             font-size: 1.15rem;
             margin-bottom: 2rem;
-            max-width: 90%; /* Más flexible que 60ch */
+            width: 100%;
+            text-align: justify;
             text-wrap: pretty; /* Evita palabras sueltas al final */
             line-height: 1.7;
         }
@@ -82,7 +83,7 @@
                 display: inline-block;
                 border: 1px solid var(--border-subtle);
                 padding: 4px 8px;
-                border-radius: 4px;
+                border-radius: 8px;
             }
 
             .btn {
@@ -113,13 +114,22 @@
                 border-radius: var(--radius);
                 position: relative;
                 overflow: hidden;
-                transition: border-color 0.3s ease;
+                transition: all 0.3s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             }
             .tech-frame:hover {
                 border-color: var(--border-highlight);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            }
+            .tech-frame.diagram-box {
+                background-color: transparent;
+                border: none;
+            }
+            .tech-frame.diagram-box:hover {
+                border: none;
             }
 
             /* Video Styles */
@@ -180,6 +190,7 @@
             header {
                 padding: 8rem 0;
                 border-bottom: 1px solid var(--border-subtle);
+                transition: border-color 0.3s ease;
             }
             section:last-of-type {
                 border-bottom: none;
@@ -193,13 +204,10 @@
             }
             .diagram-box {
                 height: auto;
-                max-width: 100%; /* Aumentado de 90% a 100% */
+                max-width: 100%;
                 margin: 0 auto;
-                background-image: radial-gradient(
-                    var(--border-subtle) 1px,
-                    transparent 1px
-                );
-                background-size: 30px 30px;
+                background: transparent;
+                border: none;
             }
 
             .diagram-box img {
@@ -207,7 +215,8 @@
                 height: auto;
                 object-fit: contain;
                 display: block;
-                padding: 0.5rem; /* Reducido el padding para dar más espacio a la imagen */
+                padding: 0;
+                filter: drop-shadow(0 0 25px rgba(0, 0, 0, 0.9));
             }
 
             .grid-2-col {
@@ -221,15 +230,76 @@
                 background: #000;
             }
 
-            .gallery-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-                margin-top: 3rem;
+            .gallery-container {
+                position: relative;
+                max-width: 1000px;
+                margin: 4rem auto;
+            }
+            .gallery-slider {
+                position: relative;
+                overflow: hidden;
+                aspect-ratio: 16/10;
+                background: transparent;
+                border: none;
             }
             .screenshot-card {
-                aspect-ratio: 16/10;
-                background: #000;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                transition: opacity 0.4s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .screenshot-card.active {
+                opacity: 1;
+                z-index: 1;
+                pointer-events: auto;
+            }
+            .screenshot-card img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+                transition: transform 0.5s ease;
+            }
+            .screenshot-card.active img {
+                transform: scale(1.02);
+            }
+            .gallery-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(0, 0, 0, 0.6);
+                border: 1px solid var(--border-subtle);
+                color: var(--text-primary);
+                padding: 1rem 1.2rem;
+                cursor: pointer;
+                z-index: 10;
+                font-family: var(--font-mono);
+                transition: all 0.2s ease;
+                backdrop-filter: blur(4px);
+                border-radius: 4px;
+            }
+            .gallery-nav:hover {
+                background: var(--accent-green);
+                color: #000;
+                border-color: var(--accent-green);
+            }
+            .nav-prev { left: -5rem; }
+            .nav-next { right: -5rem; }
+
+            @media (max-width: 1200px) {
+                .nav-prev { left: 0.5rem; }
+                .nav-next { right: 0.5rem; }
+                .gallery-container { margin: 2rem auto; }
             }
 
             .wide-banner {
@@ -387,17 +457,27 @@
                 });
             }
 
+            let currentSlide = 0;
+            function changeSlide(direction) {
+                const slides = document.querySelectorAll('.screenshot-card');
+                slides[currentSlide].classList.remove('active');
+                
+                currentSlide = (currentSlide + direction + slides.length) % slides.length;
+                
+                slides[currentSlide].classList.add('active');
+            }
+
             window.addEventListener("DOMContentLoaded", initMedia);
         </script>
 
         <header>
             <div class="container">
                 <span class="mono-label">01 // Arquitectura de Planta</span>
-                <h1>Gestión Industrial Unificada.</h1>
+                <h1>Gestión Industrial Unificada</h1>
                 <p>
-                    Procesamiento de datos a pie de máquina para mantenimiento
-                    preventivo, sincronización logística y arquitectura modular
-                    escalable para nuevas funciones.
+                    Arquitectura distribuida con procesamiento en el borde (Edge Computing) y servidor local unificado.
+                    Garantiza la total soberanía de los datos, funcionamiento sin internet y latencia mínima 
+                    mediante una red LAN segura y aislada.
                 </p>
 
                 <div class="arch-grid">
@@ -409,7 +489,7 @@
                     </div>
 
                     <div class="arch-list">
-                        <h3>Infraestructura de Procesamiento Local</h3>
+                        <h3>Infraestructura Local Segura</h3>
                         <ul style="list-style: none; margin-bottom: 2rem">
                             <li
                                 style="
@@ -418,10 +498,10 @@
                                     border-left: 2px solid var(--accent-green);
                                 "
                             >
-                                <strong>Nodo de Captura</strong>
+                                <strong>Edge Agents (Captura)</strong>
                                 <span style="color: var(--text-secondary)"
-                                    >Análisis de señales en milisegundos sin
-                                    dependencia de red externa</span
+                                    >Dispositivos hardware dedicados conectados a cada máquina
+                                    para la adquisición de datos en tiempo real.</span
                                 >
                             </li>
                             <li
@@ -431,10 +511,10 @@
                                     border-left: 2px solid var(--border-subtle);
                                 "
                             >
-                                <strong>Consolidación en la Nube</strong>
+                                <strong>Servidor Local (App & DB)</strong>
                                 <span style="color: var(--text-secondary)"
-                                    >Supervisión centralizada y control de flotas
-                                    globales</span
+                                    >Núcleo centralizado de almacenamiento y procesamiento
+                                    que sirve la aplicación a toda la red interna.</span
                                 >
                             </li>
                         </ul>
@@ -461,12 +541,10 @@
                         </div>
                         <div class="content">
                             <span class="mono-label">02 // Supervisión</span>
-                            <h2>Supervisión de Planta.</h2>
+                            <h2>Supervisión Integral de Planta</h2>
                             <p>
-                                Control de eficiencia operativa y estado de
-                                máquina en tiempo real. Seguimiento de ciclos,
-                                paradas e incidencias técnicas desde una interfaz
-                                centralizada.
+                                Monitorización centralizada de la actividad productiva: visualización del programa en curso, estados de máquina y telemetría de sensores en tiempo real.
+                                El panel unifica métricas de rendimiento (piezas planificadas vs. completadas) e integra fuentes de datos personalizadas para una visión completa del taller.
                             </p>
                         </div>
                     </div>
@@ -478,45 +556,12 @@
                     <div class="grid-2-col">
                         <div class="content">
                             <span class="mono-label">03 // Planificación</span>
-                            <h2>Planificación Automática.</h2>
+                            <h2>Planificacion de la produccion</h2>
                             <p>
-                                Optimización de carga mediante IA para reducir
-                                tiempos muertos. Ajuste instantáneo de la
-                                producción ante imprevistos en línea y cambios
-                                de prioridad.
+                                Gestión integral de órdenes de fabricación con base de datos local.
+                                Creación y seguimiento de pedidos con metadatos detallados (estado, cliente, fechas, precio).
+                                Visualización flexible mediante cronograma tipo calendario o listados agrupados por cliente.
                             </p>
-                            <ul style="list-style: none; margin-top: 1rem">
-                                <li
-                                    style="
-                                        margin-bottom: 1rem;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 1rem;
-                                    "
-                                >
-                                    <span style="color: var(--accent-orange)"
-                                        >●</span
-                                    >
-                                    <span
-                                        >Priorización Dinámica de Órdenes</span
-                                    >
-                                </li>
-                                <li
-                                    style="
-                                        margin-bottom: 1rem;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 1rem;
-                                    "
-                                >
-                                    <span style="color: var(--accent-purple)"
-                                        >●</span
-                                    >
-                                    <span
-                                        >Analítica de Ciclo de Vida</span
-                                    >
-                                </li>
-                            </ul>
                         </div>
                         <div class="tech-frame video-box">
                             <video
@@ -535,52 +580,51 @@
                 <div class="container">
                     <div style="margin-bottom: 4rem">
                         <span class="mono-label">04 // Interfaz</span>
-                        <h2>Ergonomía de Taller.</h2>
+                        <h2>Adaptabilidad y Personalización</h2>
                         <p>
-                            Diseño de alto contraste optimizado para uso táctil.
-                            Lectura clara a 3 metros en condiciones reales de
-                            fabricación y entornos industriales exigentes.
+                            Interfaz multiplataforma que garantiza el control desde cualquier dispositivo.
+                            Más allá de la pantalla, nuestra arquitectura flexible permite personalizar flujos de trabajo
+                            y desarrollar módulos a medida para satisfacer los requisitos específicos de su producción.
                         </p>
                     </div>
 
-                    <div class="gallery-grid">
-                        <div class="tech-frame screenshot-card">
-                            <img
-                                data-src="ui-dashboard.webp"
-                                alt="Panel de Control"
-                            />
-                        </div>
-                        <div class="tech-frame screenshot-card">
-                            <img
-                                data-src="ui-analytics.webp"
-                                alt="Módulo de Analítica"
-                            />
-                        </div>
-                        <div class="tech-frame screenshot-card">
-                            <img data-src="ui-mobile.webp" alt="Terminal Móvil" />
-                        </div>
-                        <div class="tech-frame screenshot-card">
-                            <img
-                                data-src="ui-alerts.webp"
-                                alt="Sistema de Notificaciones"
-                            />
+                    <div style="margin-bottom: 2rem; margin-top: 4rem;">
+                        <span class="mono-label">05 // Galería</span>
+                        <h2>Galería Visual</h2>
+                    </div>
+
+                    <div class="gallery-container">
+                        <button class="gallery-nav nav-prev" onclick="changeSlide(-1)">&lt;</button>
+                        <button class="gallery-nav nav-next" onclick="changeSlide(1)">&gt;</button>
+                        
+                        <div class="gallery-slider">
+                            <div class="tech-frame screenshot-card active">
+                                <img
+                                    data-src="ui-dashboard.webp"
+                                    alt="Panel de Control"
+                                />
+                            </div>
+                            <div class="tech-frame screenshot-card">
+                                <img
+                                    data-src="ui-analytics.webp"
+                                    alt="Módulo de Analítica"
+                                />
+                            </div>
+                            <div class="tech-frame screenshot-card">
+                                <img data-src="rasp.png" alt="Terminal Móvil" />
+                            </div>
+                            <div class="tech-frame screenshot-card">
+                                <img
+                                    data-src="ui-alerts.webp"
+                                    alt="Sistema de Notificaciones"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="cta">
-                <div class="container">
-                    <div class="tech-frame wide-banner">
-                        <h2 style="margin-bottom: 2rem; text-align: center">
-                            ¿Desea modernizar su infraestructura de producción?
-                        </h2>
-                        <a href="mailto:sales@example.com" class="btn"
-                            >Contactar con Oficina Técnica</a
-                        >
-                    </div>
-                </div>
-            </section>
         </main>
     </body>
 </html>
+
